@@ -1,6 +1,16 @@
 module Parse
   def parse(score_line)
-    score_line.chars.each_slice(2).map {|a,b| Frame.new(a, b)}
+    score_chars = score_line.chars.to_a
+    frames = []
+    until score_chars.empty?
+      first_roll = score_chars.shift
+      frame = case first_roll
+              when 'X' then Frame.new(first_roll, nil)
+              else Frame.new(first_roll, score_chars.shift)
+              end
+      frames << frame
+    end
+    frames
   end
 end
 
@@ -12,16 +22,41 @@ class Frame
     @second_roll = second_roll
   end
   
-  def first_roll
-    @first_roll.to_i
-  end
-  
   def score
-    if @second_roll == "/"
-      10 + @next_frame.first_roll
+    if strike_frame?
+      10 + @next_frame.score_of_next_two_rolls
+    elsif spare_frame?
+      10 + @next_frame.score_of_first_roll
     else
       @first_roll.to_i + @second_roll.to_i
     end
+  end
+  
+  def score_of_first_roll
+    if strike_frame?
+      10
+    else
+      @first_roll.to_i
+    end
+  end
+  
+  def score_of_next_two_rolls
+    if strike_frame?
+      10 + @next_frame.score_of_first_roll
+    elsif spare_frame?
+      10
+    else
+      @first_roll.to_i + @second_roll.to_i
+    end
+  end
+  
+  protected
+  def strike_frame?
+    @first_roll == "X"
+  end
+  
+  def spare_frame?
+    @second_roll == "/"
   end
 end
 
