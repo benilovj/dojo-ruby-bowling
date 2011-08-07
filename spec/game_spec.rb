@@ -1,36 +1,34 @@
 require 'game'
 
 describe Game do
-  before(:each) do
-    @game = Game.new
-  end
-  
+  let(:game) { Game.new }
+
   it "should score all gutter balls as 0" do
-    @game.score("--------------------").should == 0
+    game.score("--" * 10).should == 0
   end
   
   it "should score single rolls in each frame" do
-    @game.score("9-"*10).should == 90
+    game.score("9-"*10).should == 90
   end
   
   it "should score a spare without points in the next roll" do
-    @game.score("5/" + "--"*9).should == 10 
+    game.score("5/" + "--"*9).should == 10 
   end
 
   it "should score a spare with points in the next roll" do
-    @game.score("5/5-" + "--"*8).should == 20
+    game.score("5/5-" + "--"*8).should == 20
   end
   
   it "should score a strike without points in the next roll" do
-    @game.score("X" + "--"*9).should == 10
+    game.score("X" + "--"*9).should == 10
   end
 
   it "should score a strike with points in the next roll" do
-    @game.score("X" + "5-" + "--"*8).should == 20
+    game.score("X" + "5-" + "--"*8).should == 20
   end
   
   it "should score three consequtive strikes" do
-    @game.score("XXX" + "--"*7).should == 60
+    game.score("XXX" + "--"*7).should == 60
   end
 end
 
