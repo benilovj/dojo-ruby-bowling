@@ -11,24 +11,40 @@ describe Game do
     game.score("9-"*10).should == 90
   end
   
-  it "should score a spare without points in the next roll" do
-    game.score("5/" + "--"*9).should == 10 
-  end
+  context "spares" do
+    it "should score a spare without points in the next roll" do
+      game.score("5/" + "--"*9).should == 10 
+    end
 
-  it "should score a spare with points in the next roll" do
-    game.score("5/5-" + "--"*8).should == 20
+    it "should score a spare with points in the next roll" do
+      game.score("5/5-" + "--"*8).should == 20
+    end
   end
   
-  it "should score a strike without points in the next roll" do
-    game.score("X" + "--"*9).should == 10
-  end
+  context "strikes" do
+    it "should score a strike without points in the next roll" do
+      game.score("X" + "--"*9).should == 10
+    end
 
-  it "should score a strike with points in the next roll" do
-    game.score("X" + "5-" + "--"*8).should == 20
+    it "should score a strike with points in the next roll" do
+      game.score("X" + "5-" + "--"*8).should == 20
+    end
+  
+    it "should score three consequtive strikes" do
+      game.score("XXX" + "--"*7).should == 60
+    end
   end
   
-  it "should score three consequtive strikes" do
-    game.score("XXX" + "--"*7).should == 60
+  context "extended last frame" do
+    it "should score with a spare in the second roll" do
+      pending("extended frame implementation")
+      game.score("--"*9 + "3/5").should == 20
+    end
+    
+    it "should score with a strike as the extended throw" do
+      pending("extended frame implementation")
+      game.score("--"*9 + "3/X").should == 30
+    end
   end
 end
 
@@ -44,6 +60,11 @@ describe Parse do
     parse("X").should have(1).frame
     parse("XX").should have(2).frames
     parse("X--").should have(2).frames
+  end
+  
+  it "should parse an extended game into frames" do
+    pending("extended frame implementation")
+    parse("--"*9+"3/5").should have(10).frames
   end
 end
 
@@ -87,5 +108,5 @@ describe Frame do
     it { frame.score.should == 18 }
     it { frame.score_of_first_roll.should == 10}
     it { frame.score_of_next_two_rolls.should == 15}    
-  end
+  end  
 end

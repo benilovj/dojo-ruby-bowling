@@ -17,7 +17,7 @@ end
 class Frame
   attr_writer :next_frame
   
-  def initialize(first_roll, second_roll)
+  def initialize(first_roll, second_roll = nil)
     @first_roll = first_roll
     @second_roll = second_roll
   end
@@ -63,7 +63,7 @@ end
 class Game
   def score(score_line)
     frames = parse(score_line)
-    frames.each_cons(2) {|current_frame, next_frame| current_frame.next_frame = next_frame}
+    link_to_next(frames)
     frames.inject(0) do |total_score, frame|
       total_score + frame.score
     end
@@ -71,4 +71,8 @@ class Game
   
   private
   include Parse
+  
+  def link_to_next(frames)
+    frames.each_cons(2) {|current_frame, next_frame| current_frame.next_frame = next_frame}
+  end
 end
