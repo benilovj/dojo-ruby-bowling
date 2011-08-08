@@ -69,7 +69,7 @@ describe Parse do
     parse("--"*9+"XXX").should  have(10).frames
   end
 end
-
+  
 describe Frame do
   context "gutter frame" do
     let(:frame) {Frame.new("-", "-")}
@@ -87,30 +87,30 @@ describe Frame do
     let(:frame) {Frame.new("1", "2")}
     it { frame.score.should == 3 }
   end
-  
-  context "spare" do
-    let(:frame) do
-      current_frame = Frame.new("3", "/")
-      current_frame.next_frame = Frame.new("5", "-")
-      current_frame
-    end
-    
-    it { frame.score.should == 15 }
-    it { frame.score_of_first_roll.should == 3 }
-    it { frame.score_of_next_two_rolls.should == 10 }
+end
+
+describe SpareFrame do
+  let(:frame) do
+    current_frame = SpareFrame.new("3")
+    current_frame.next_frame = Frame.new("5", "-")
+    current_frame
   end
   
-  context "strike" do
-    let(:frame) do
-      current_frame = Frame.new("X", nil)
-      current_frame.next_frame = Frame.new("5", "3")
-      current_frame
-    end
-    
-    it { frame.score.should == 18 }
-    it { frame.score_of_first_roll.should == 10}
-    it { frame.score_of_next_two_rolls.should == 15}    
-  end  
+  it { frame.score.should == 15 }
+  it { frame.score_of_first_roll.should == 3 }
+  it { frame.score_of_next_two_rolls.should == 10 }
+end
+
+describe StrikeFrame do
+  let(:frame) do
+    current_frame = StrikeFrame.new
+    current_frame.next_frame = Frame.new("5", "3")
+    current_frame
+  end
+  
+  it { frame.score.should == 18 }
+  it { frame.score_of_first_roll.should == 10}
+  it { frame.score_of_next_two_rolls.should == 15}    
 end
 
 describe ExtendedLastFrame do

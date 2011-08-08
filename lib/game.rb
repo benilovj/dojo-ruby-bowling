@@ -2,21 +2,24 @@ module Parse
   def parse(score_line)
     score_chars = score_line.chars.to_a
     frames = []
+    
     until score_chars.empty?
-      if frames.size == 9 and (score_chars[0] == "X" or score_chars[1] == "/")
-        frame = ExtendedLastFrame.new(*score_chars)
-        score_chars = []
-      else
-        first_roll = score_chars.shift
-        frame = case first_roll
-                when 'X' then Frame.new(first_roll, nil)
-                else Frame.new(first_roll, score_chars.shift)
-                end
-      end
-      frames << frame
+      frames << pop_frame(score_chars, frames.size == 9)
     end
     frames
   end
+  
+  def pop_frame(score_chars, is_last)
+    return  ExtendedLastFrame.new(*(score_chars.shift 3)) if is_last and score_chars.size == 3
+
+    first_roll = score_chars.shift
+    return StrikeFrame.new if first_roll == 'X'
+
+    second_roll = score_chars.shift
+    return SpareFrame.new(first_roll) if second_roll == "/"
+    
+    Frame.new(first_roll, second_roll)
+  end  
 end
 
 class Frame
@@ -28,40 +31,52 @@ class Frame
   end
   
   def score
-    if strike_frame?
-      10 + @next_frame.score_of_next_two_rolls
-    elsif spare_frame?
-      10 + @next_frame.score_of_first_roll
-    else
-      @first_roll.to_i + @second_roll.to_i
-    end
+    @first_roll.to_i + @second_roll.to_i
   end
   
   def score_of_first_roll
-    if strike_frame?
-      10
-    else
-      @first_roll.to_i
-    end
+    @first_roll.to_i
   end
   
   def score_of_next_two_rolls
-    if strike_frame?
-      10 + @next_frame.score_of_first_roll
-    elsif spare_frame?
-      10
-    else
-      @first_roll.to_i + @second_roll.to_i
-    end
+    @first_roll.to_i + @second_roll.to_i
   end
   
-  protected
-  def strike_frame?
-    @first_roll == "X"
+end
+
+class SpareFrame 
+  attr_writer :next_frame
+  
+  def initialize(first_roll)
+    @first_roll = first_roll
   end
   
-  def spare_frame?
-    @second_roll == "/"
+  def score
+    10 + @next_frame.score_of_first_roll
+  end
+  
+  def score_of_first_roll
+    @first_roll.to_i
+  end
+  
+  def score_of_next_two_rolls
+    10
+  end
+end
+
+class StrikeFrame
+  attr_writer :next_frame
+  
+  def score
+    10 + @next_frame.score_of_next_two_rolls
+  end
+  
+  def score_of_first_roll
+    10
+  end
+  
+  def score_of_next_two_rolls
+    10 + @next_frame.score_of_first_roll
   end
 end
 
