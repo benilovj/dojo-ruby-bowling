@@ -37,14 +37,16 @@ describe Game do
   
   context "extended last frame" do
     it "should score with a spare in the second roll" do
-      pending("extended frame implementation")
-      game.score("--"*9 + "3/5").should == 20
+      game.score("--"*9 + "3/5").should == 15
     end
     
     it "should score with a strike as the extended throw" do
-      pending("extended frame implementation")
-      game.score("--"*9 + "3/X").should == 30
+      game.score("--"*9 + "XXX").should == 30
     end
+  end
+  
+  it "should score the perfect game" do
+    game.score("X"*12).should == 300
   end
 end
 
@@ -63,8 +65,8 @@ describe Parse do
   end
   
   it "should parse an extended game into frames" do
-    pending("extended frame implementation")
     parse("--"*9+"3/5").should have(10).frames
+    parse("--"*9+"XXX").should  have(10).frames
   end
 end
 
@@ -109,4 +111,8 @@ describe Frame do
     it { frame.score_of_first_roll.should == 10}
     it { frame.score_of_next_two_rolls.should == 15}    
   end  
+end
+
+describe ExtendedLastFrame do
+  it { ExtendedLastFrame.new("3", "/", "3").score.should == 13 }
 end
