@@ -94,7 +94,7 @@ class ExtendedLastFrame
   end
   
   def score_of_next_two_rolls
-    scores[0..1].inject(:+)
+    scores[0] + scores[1]
   end
   
   protected
