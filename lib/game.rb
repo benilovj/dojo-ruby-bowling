@@ -14,14 +14,13 @@ module Parse
   end
   
   def pop_frame(rolls, is_last)
-    return ExtendedLastFrame.new((rolls.shift 3).first) if is_last and rolls.size == 3
+    return StrikeOrSpareFrame.new((rolls.shift 3).first) if is_last and rolls.size == 3
 
     first_roll = rolls.shift
-    return StrikeFrame.new(first_roll) if first_roll.strike?
+    return StrikeOrSpareFrame.new(first_roll) if first_roll.strike?
 
     second_roll = rolls.shift
-    first_roll.next = second_roll
-    return SpareFrame.new(first_roll) if second_roll.spare?
+    return StrikeOrSpareFrame.new(first_roll) if second_roll.spare?
     
     Frame.new(first_roll)
   end  
@@ -47,52 +46,40 @@ class Roll
   end
   
   def score
-    case @char
+    case
     when gutter? then 0
     when strike? then 10
     when spare? then 10 - @previous.score
     else @char.to_i
     end
   end
-end
-
-class Frame
-  def initialize(first_roll)
-    @first_roll = first_roll
-  end
   
-  def score
-    @first_roll.score + @first_roll.next.score
+  def and_the_next(number)
+    return [self] if number == 0
+    return [self] + self.next.and_the_next(number-1)
   end
 end
 
-class SpareFrame 
+class AbstractFrame
   def initialize(first_roll)
     @first_roll = first_roll
   end
-  
-  def score
-    @first_roll.score + @first_roll.next.score + @first_roll.next.next.score
+
+  protected
+  def sum_of(rolls)
+    rolls.map(&:score).inject(:+)
   end
 end
 
-class StrikeFrame
-  def initialize(first_roll)
-    @first_roll = first_roll
-  end
-  
+class Frame < AbstractFrame
   def score
-    @first_roll.score + @first_roll.next.score + @first_roll.next.next.score
-  end  
+    sum_of(@first_roll.and_the_next(1))
+  end
 end
 
-class ExtendedLastFrame
-  def initialize(first_roll)
-    @first_roll = first_roll
-  end
-  
+class StrikeOrSpareFrame < AbstractFrame
   def score
-    [@first_roll, @first_roll.next, @first_roll.next.next].map(&:score).inject(:+)
+    sum_of(@first_roll.and_the_next(2))
   end
 end
 

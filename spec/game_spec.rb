@@ -70,6 +70,12 @@ describe Parse do
   end
 end
 
+def first_of_rolls(*chars)
+  new_rolls = chars.map {|char| Roll.new(char)}
+  new_rolls.each_cons(2) {|roll, next_roll| next_roll.previous = roll; roll.next = next_roll}
+  new_rolls.first
+end
+
 describe Roll do
   it { Roll.new("-").score.should == 0 }
   it { Roll.new("3").score.should == 3 }
@@ -82,6 +88,15 @@ describe Roll do
     current_roll.score.should == 7
     current_roll.should be_a_spare
   end
+  
+  it "should provide the next rolls" do
+    roll = first_of_rolls("3", "4", "5")
+    roll.and_the_next(1).should have(2).rolls
+    roll.and_the_next(2).should have(3).rolls
+    
+    roll.and_the_next(1).map(&:score).inject(:+).should == 7
+    roll.and_the_next(2).map(&:score).inject(:+).should == 12
+  end
 end
 
 def new_frame(first_roll, second_roll)
@@ -89,16 +104,6 @@ def new_frame(first_roll, second_roll)
   r2 = Roll.new(second_roll)
   r1.next = r2
   Frame.new(r1)
-end
-
-def new_spare(first_roll)
-  SpareFrame.new(rolls(first_roll, "/").first)
-end
-
-def rolls(*chars)
-  new_rolls = chars.map {|char| Roll.new(char)}
-  new_rolls.each_cons(2) {|roll, next_roll| next_roll.previous = roll; roll.next = next_roll}
-  new_rolls.first
 end
 
 describe Frame do
@@ -115,16 +120,18 @@ describe Frame do
   end
 end
 
-describe SpareFrame do
-  let(:frame) { SpareFrame.new(rolls("3", "/", "5")) }
-  it { frame.score.should == 15 }
-end
-
-describe StrikeFrame do
-  let(:frame) { StrikeFrame.new(rolls("X", "5", "3")) }
-  it { frame.score.should == 18 }
-end
-
-describe ExtendedLastFrame do
-  it { ExtendedLastFrame.new(rolls("3", "/", "3")).score.should == 13 }
+describe StrikeOrSpareFrame do
+  context "spares" do
+    let(:frame) { StrikeOrSpareFrame.new(first_of_rolls("3", "/", "5")) }
+    it { frame.score.should == 15 }
+  end
+  
+  context "strikes" do
+    let(:frame) { StrikeOrSpareFrame.new(first_of_rolls("X", "5", "3")) }
+    it { frame.score.should == 18 }
+  end
+  
+  context "last frame" do
+    it { StrikeOrSpareFrame.new(first_of_rolls("3", "/", "3")).score.should == 13 }
+  end
 end
