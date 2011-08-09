@@ -69,50 +69,62 @@ describe Parse do
     parse("--"*9+"XXX").should  have(10).frames
   end
 end
+
+describe Roll do
+  it { Roll.new("-").score.should == 0 }
+  it { Roll.new("3").score.should == 3 }
+  it { Roll.new("X").score.should == 10 }
+  it { Roll.new("X").should be_a_strike }
   
+  it "should provide a score for a spare" do 
+    current_roll = Roll.new("/")
+    current_roll.previous = Roll.new("3")
+    current_roll.score.should == 7
+    current_roll.should be_a_spare
+  end
+end
+
+def new_frame(first_roll, second_roll)
+  r1 = Roll.new(first_roll)
+  r2 = Roll.new(second_roll)
+  r1.next = r2
+  Frame.new(r1)
+end
+
+def new_spare(first_roll)
+  SpareFrame.new(rolls(first_roll, "/").first)
+end
+
+def rolls(*chars)
+  new_rolls = chars.map {|char| Roll.new(char)}
+  new_rolls.each_cons(2) {|roll, next_roll| next_roll.previous = roll; roll.next = next_roll}
+  new_rolls.first
+end
+
 describe Frame do
   context "gutter frame" do
-    let(:frame) {Frame.new("-", "-")}
-    it { frame.score.should == 0 }
-    it { frame.score_of_first_roll.should == 0 }
-    it { frame.score_of_next_two_rolls.should == 0 }
+    it { new_frame("-", "-").score.should == 0 }
   end
   
   context "frame with the second roll being a gutter ball" do
-    let(:frame) {Frame.new("5", "-")}
-    it { frame.score.should == 5}
+    it { new_frame("5", "-").score.should == 5}
   end
 
   context "frame with pins standing" do
-    let(:frame) {Frame.new("1", "2")}
-    it { frame.score.should == 3 }
+    it { new_frame("1", "2").score.should == 3 }
   end
 end
 
 describe SpareFrame do
-  let(:frame) do
-    current_frame = SpareFrame.new("3")
-    current_frame.next_frame = Frame.new("5", "-")
-    current_frame
-  end
-  
+  let(:frame) { SpareFrame.new(rolls("3", "/", "5")) }
   it { frame.score.should == 15 }
-  it { frame.score_of_first_roll.should == 3 }
-  it { frame.score_of_next_two_rolls.should == 10 }
 end
 
 describe StrikeFrame do
-  let(:frame) do
-    current_frame = StrikeFrame.new
-    current_frame.next_frame = Frame.new("5", "3")
-    current_frame
-  end
-  
+  let(:frame) { StrikeFrame.new(rolls("X", "5", "3")) }
   it { frame.score.should == 18 }
-  it { frame.score_of_first_roll.should == 10}
-  it { frame.score_of_next_two_rolls.should == 15}    
 end
 
 describe ExtendedLastFrame do
-  it { ExtendedLastFrame.new("3", "/", "3").score.should == 13 }
+  it { ExtendedLastFrame.new(rolls("3", "/", "3")).score.should == 13 }
 end
